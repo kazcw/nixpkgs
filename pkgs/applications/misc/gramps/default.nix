@@ -1,5 +1,5 @@
 { stdenv, fetchFromGitHub, gtk3, pythonPackages, intltool, gnome3,
-  pango, gobject-introspection, wrapGAppsHook,
+  pango, gobject-introspection, wrapGAppsHook, gettext,
 # Optional packages:
  enableOSM ? true, osm-gps-map,
  enableGraphviz ? true, graphviz,
@@ -13,7 +13,7 @@ in buildPythonApplication rec {
   name = "gramps-${version}";
 
   nativeBuildInputs = [ wrapGAppsHook ];
-  buildInputs = [ intltool gtk3 gobject-introspection pango gnome3.gexiv2 ] 
+  buildInputs = [ intltool gtk3 gobject-introspection pango gnome3.gexiv2 gettext ]
     # Map support
     ++ stdenv.lib.optional enableOSM osm-gps-map
     # Graphviz support
@@ -31,6 +31,11 @@ in buildPythonApplication rec {
   };
 
   pythonPath = with pythonPackages; [ bsddb3 PyICU pygobject3 pycairo ];
+
+  postPatch = ''
+    substituteInPlace setup.py \
+      --replace "msgfmt" "${gettext}/bin/msgfmt"
+  '';
 
   # Same installPhase as in buildPythonApplication but without --old-and-unmanageble
   # install flag.
